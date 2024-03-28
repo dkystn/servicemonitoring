@@ -21,13 +21,15 @@ class Login extends CI_Controller {
 				$id_user = $rows->id_user;
                 $nama_user = $rows->nama_user;
 				$level_pengguna = $rows->level_pengguna;
+				$id_cabang = $rows->id_cabang;
             }
 			
             $this->session->set_userdata(array(
                 'loginMasuk'		=> TRUE, 
 				'id_user' 			=> $id_user,
 				'nama_user' 		=> $nama_user,
-				'level_pengguna' 	=> $level_pengguna
+				'level_pengguna' 	=> $level_pengguna,
+				'id_cabang' 	=> $id_cabang
             ));
 			if($this->session->userdata('level_pengguna')=='Admin'){
 				redirect('admin');

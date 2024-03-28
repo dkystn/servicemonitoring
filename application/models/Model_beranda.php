@@ -65,18 +65,189 @@ class Model_beranda extends CI_Model
             $query = $this->db->get();
             return $query->result(); 
         }
-        function count_pre($id, $today, $end_value) {
+        function count($journey, $id, $today, $end_value , $id_pelabuhan, $id_kapal, $id_journey) {
+            $this->db->select_sum('laporan.poin');
+            $this->db->join('journey', 'journey.id_journey = laporan.id_journey');
+            $this->db->join('cabang', 'cabang.id_cabang = laporan.id_cabang');
+            $this->db->where('journey.journey', $journey);
+            if($id != null){
+                $this->db->where('laporan.id_cabang', $id);
+            }
+            
+            if($id_journey != null){
+                $this->db->where('laporan.id_journey', $id_journey);
+            }
+            if ($end_value != null){
+                $this->db->where('laporan.tanggal >=', $today);
+                $this->db->where('laporan.tanggal <=', $end_value);
+            }else {
+                $this->db->where('laporan.tanggal', $today);
+            }
+            if ($id_kapal != null) {
+                $this->db->where('laporan.id_kapal', $id_kapal);
+            }
+            if ($id_pelabuhan != null) {
+                $this->db->where('laporan.id_pelabuhan', $id_pelabuhan);
+            }
+
+            $this->db->where('laporan.status', 'setuju');
+            $query = $this->db->get('laporan');
+        
+            // if ($query->num_rows() > 0) {
+            //     $row = $query->row();
+            //     $total_points = $row->poin;
+        
+            //     $this->db->join('journey', 'journey.id_journey = laporan.id_journey');
+            //     $this->db->join('cabang', 'cabang.id_cabang = laporan.id_cabang');
+            //     $this->db->where('journey.journey', $journey);
+            //     if($id != null){
+            //         $this->db->where('laporan.id_cabang', $id);
+            //     }
+                 
+                 
+            //     if ($end_value != null){
+            //         $this->db->where('laporan.tanggal >=', $today);
+            //         $this->db->where('laporan.tanggal <=', $end_value);
+            //     }else {
+            //         $this->db->where('laporan.tanggal', $today);
+            //     }
+            //      if ($id_kapal != null) {
+            //         $this->db->where('laporan.id_kapal', $id_kapal);
+            //     }
+            //     if($id_journey != null){
+            //         $this->db->where('laporan.id_journey', $id_journey);
+            //     }
+            //     if ($id_pelabuhan != null) {
+            //        $this->db->where('laporan.id_pelabuhan', $id_pelabuhan);
+            //    }
+            //     $this->db->where('laporan.status', 'setuju');
+            //     $count = $this->db->count_all_results('laporan');
+        
+            //     if ($count > 0) {
+            //         $average_points = $total_points / $count;
+            //         $rounded_average = round($average_points);
+            //         return $rounded_average;
+            //     }
+            // }
+            // if ($query->num_rows() > 0) {
+            //     $row = $query->row();
+            //     $total_points = $row->poin;
+            
+            //     $this->db->select_sum('laporan.poin');
+            //     $this->db->join('journey', 'journey.id_journey = laporan.id_journey');
+            //     $this->db->join('cabang', 'cabang.id_cabang = laporan.id_cabang');
+            //     $this->db->where('journey.journey', $journey);
+            //     if($id != null){
+            //         $this->db->where('laporan.id_cabang', $id);
+            //     }
+                
+            //     if ($end_value != null){
+            //         $this->db->where('laporan.tanggal >=', $today);
+            //         $this->db->where('laporan.tanggal <=', $end_value);
+            //     } else {
+            //         $this->db->where('laporan.tanggal', $today);
+            //     }
+                
+            //     if ($id_kapal != null) {
+            //         $this->db->where('laporan.id_kapal', $id_kapal);
+            //     }
+            //     if($id_journey != null){
+            //         $this->db->where('laporan.id_journey', $id_journey);
+            //     }
+            //     if ($id_pelabuhan != null) {
+            //         $this->db->where('laporan.id_pelabuhan', $id_pelabuhan);
+            //     }
+            //     $this->db->where('laporan.status', 'setuju');
+            //     $query = $this->db->get('laporan');
+            //     $result = $query->row();
+                
+            //     if ($result) {
+            //         $rounded_points = round($result->poin);
+            //         return $rounded_points;
+            //     }
+            // }
+            if ($query->num_rows() > 0) {
+                $row = $query->row();
+                $total_points = $row->poin;
+            
+                $this->db->join('journey', 'journey.id_journey = laporan.id_journey');
+                $this->db->join('cabang', 'cabang.id_cabang = laporan.id_cabang');
+                $this->db->where('journey.journey', $journey);
+                if($id != null){
+                    $this->db->where('laporan.id_cabang', $id);
+                }
+                         
+                if ($end_value != null){
+                    $this->db->where('laporan.tanggal >=', $today);
+                    $this->db->where('laporan.tanggal <=', $end_value);
+                } else {
+                    $this->db->where('laporan.tanggal', $today);
+                }
+                if ($id_kapal != null) {
+                    $this->db->where('laporan.id_kapal', $id_kapal);
+                }
+                if($id_journey != null){
+                    $this->db->where('laporan.id_journey', $id_journey);
+                }
+                if ($id_pelabuhan != null) {
+                   $this->db->where('laporan.id_pelabuhan', $id_pelabuhan);
+                }
+                $this->db->where('laporan.status', 'setuju');
+                $this->db->group_by('laporan.id_type_option'); // Group by id_type_option
+                
+                $query = $this->db->get('laporan');
+                $result = $query->result();
+            
+                $rounded_points = 0;
+            
+                if ($result) {
+                    // Hitung jumlah data yang sesuai dengan kriteria
+                    $this->db->from('type_option');
+                    $this->db->join('journey', 'journey.id_journey = type_option.id_journey');
+                    if($id != null){
+                    $this->db->where('type_option.id_cabang', $id);
+                    }
+                    $this->db->where('journey.journey', $journey);
+                    $count = $this->db->count_all_results();
+            
+                    foreach ($result as $row) {
+                        // if( $count != 0){
+                        //     $average_points = $row->poin / $count;
+                        // }else{
+                        //     $average_points = $row->poin ;
+                        // }
+                        $average_points = $row->poin / $count;
+                         // Hitung rata-rata per id_type_option
+                        $rounded_points += round($average_points);
+                    }
+                } else {
+                    $rounded_points = round($total_points);
+                }
+            
+                return $rounded_points;
+            }
+            
+            
+        
+            return 0;
+        }
+        function count_pre($id, $today, $end_value , $id_kapal) {
             $this->db->select_sum('laporan.poin');
             $this->db->join('journey', 'journey.id_journey = laporan.id_journey');
             $this->db->join('cabang', 'cabang.id_cabang = laporan.id_cabang');
             $this->db->where('journey.journey', 'Pre Journey');
              $this->db->where('laporan.id_cabang', $id);
-             if ($end_value === null){
+
+            if ($end_value === null){
                 $this->db->where('laporan.tanggal', $today);
-             }else {
+            }else {
                 $this->db->where('tanggal >=', $today);
                 $this->db->where('tanggal <=', $end_value);
-             }
+            }
+            if ($id_kapal != null) {
+                $this->db->where('laporan.id_kapal', $id_kapal);
+            }
+
             $this->db->where('laporan.status', 'setuju');
             $query = $this->db->get('laporan');
         
@@ -94,6 +265,9 @@ class Model_beranda extends CI_Model
                     $this->db->where('tanggal >=', $today);
                     $this->db->where('tanggal <=', $end_value);
                  }
+                 if ($id_kapal != null) {
+                    $this->db->where('laporan.id_kapal', $id_kapal);
+                }
                 $this->db->where('laporan.status', 'setuju');
                 $count = $this->db->count_all_results('laporan');
         
@@ -106,7 +280,7 @@ class Model_beranda extends CI_Model
         
             return 0;
         }
-        function count_port($id, $today, $end_value){
+        function count_port($id, $today, $end_value, $id_kapal){
             $this->db->select_sum('laporan.poin');
             $this->db->join('journey', 'journey.id_journey = laporan.id_journey');
             $this->db->join('cabang', 'cabang.id_cabang = laporan.id_cabang');
@@ -118,6 +292,9 @@ class Model_beranda extends CI_Model
                 $this->db->where('tanggal >=', $today);
                 $this->db->where('tanggal <=', $end_value);
              }
+             if ($id_kapal != null) {
+                $this->db->where('laporan.id_kapal', $id_kapal);
+            }
             $this->db->where('laporan.status', 'setuju');
             $query = $this->db->get('laporan');
         
@@ -135,6 +312,9 @@ class Model_beranda extends CI_Model
                     $this->db->where('tanggal >=', $today);
                     $this->db->where('tanggal <=', $end_value);
                 }
+                if ($id_kapal != null) {
+                    $this->db->where('laporan.id_kapal', $id_kapal);
+                }
                 $this->db->where('laporan.status', 'setuju');
                 $count = $this->db->count_all_results('laporan');
         
@@ -147,7 +327,7 @@ class Model_beranda extends CI_Model
         
             return 0;
         }
-        function count_on($id, $today, $end_value){
+        function count_on($id, $today, $end_value, $id_kapal){
             $this->db->select_sum('laporan.poin');
             $this->db->join('journey', 'journey.id_journey = laporan.id_journey');
             $this->db->join('cabang', 'cabang.id_cabang = laporan.id_cabang');
@@ -158,6 +338,9 @@ class Model_beranda extends CI_Model
                 }else {
                     $this->db->where('tanggal >=', $today);
                     $this->db->where('tanggal <=', $end_value);
+                }
+                if ($id_kapal != null) {
+                    $this->db->where('laporan.id_kapal', $id_kapal);
                 }
             $this->db->where('laporan.status', 'setuju');
             $query = $this->db->get('laporan');
@@ -176,6 +359,9 @@ class Model_beranda extends CI_Model
                     $this->db->where('tanggal >=', $today);
                     $this->db->where('tanggal <=', $end_value);
                 }
+                if ($id_kapal != null) {
+                    $this->db->where('laporan.id_kapal', $id_kapal);
+                }
                 $this->db->where('laporan.status', 'setuju');
                 $count = $this->db->count_all_results('laporan');
         
@@ -188,7 +374,7 @@ class Model_beranda extends CI_Model
         
             return 0;
         }
-        function count_post($id, $today, $end_value){
+        function count_post($id, $today, $end_value, $id_kapal){
             $this->db->select_sum('laporan.poin');
             $this->db->join('journey', 'journey.id_journey = laporan.id_journey');
             $this->db->join('cabang', 'cabang.id_cabang = laporan.id_cabang');
@@ -199,6 +385,9 @@ class Model_beranda extends CI_Model
                 }else {
                     $this->db->where('tanggal >=', $today);
                     $this->db->where('tanggal <=', $end_value);
+                }
+                if ($id_kapal != null) {
+                    $this->db->where('laporan.id_kapal', $id_kapal);
                 }
             $this->db->where('laporan.status', 'setuju');
             $query = $this->db->get('laporan');
@@ -217,6 +406,9 @@ class Model_beranda extends CI_Model
                     $this->db->where('tanggal >=', $today);
                     $this->db->where('tanggal <=', $end_value);
                 }
+                if ($id_kapal != null) {
+                    $this->db->where('laporan.id_kapal', $id_kapal);
+                }
                 $this->db->where('laporan.status', 'setuju');
                 $count = $this->db->count_all_results('laporan');
         
@@ -229,17 +421,26 @@ class Model_beranda extends CI_Model
         
             return 0;
         }
-        function count_all($id, $today, $end_value)
+        function count_all($id, $today, $end_value , $id_pelabuhan, $id_kapal, $id_journey)
         {
             $this->db->select_sum('laporan.poin');
             $this->db->join('cabang', 'cabang.id_cabang = laporan.id_cabang');
              $this->db->where('laporan.id_cabang', $id);
+             if($id_journey != null){
+                $this->db->where('laporan.id_journey', $id_journey);
+            }
              if ($end_value === null){
                 $this->db->where('laporan.tanggal', $today);
                 }else {
                     $this->db->where('tanggal >=', $today);
                     $this->db->where('tanggal <=', $end_value);
                 }
+                if ($id_kapal != null) {
+                    $this->db->where('laporan.id_kapal', $id_kapal);
+                }
+                if ($id_pelabuhan != null) {
+                   $this->db->where('laporan.id_pelabuhan', $id_pelabuhan);
+               }
             $this->db->where('laporan.status', 'setuju');
             $query = $this->db->get('laporan');
         
@@ -250,12 +451,21 @@ class Model_beranda extends CI_Model
                 $this->db->select_sum('laporan.poin');
                 $this->db->join('cabang', 'cabang.id_cabang = laporan.id_cabang');
                 $this->db->where('laporan.id_cabang', $id);
+                if($id_journey != null){
+                    $this->db->where('laporan.id_journey', $id_journey);
+                }
                 if ($end_value === null){
                 $this->db->where('laporan.tanggal', $today);
                 }else {
                     $this->db->where('tanggal >=', $today);
                     $this->db->where('tanggal <=', $end_value);
                 }
+                if ($id_kapal != null) {
+                    $this->db->where('laporan.id_kapal', $id_kapal);
+                }
+                if ($id_pelabuhan != null) {
+                   $this->db->where('laporan.id_pelabuhan', $id_pelabuhan);
+               }
                 $this->db->where('laporan.status', 'setuju');
                 $count = $this->db->count_all_results('laporan');
                 
@@ -417,16 +627,19 @@ class Model_beranda extends CI_Model
             return $query->row();
         }
 
-        public function item_journey($id, $journey)
+        public function item_journey($id, $id_journey)
         {
             
-            $this->db->where('type_option.id_journey', $journey);
+            if($id_journey != null){
+                $this->db->where('type_option.id_journey', $id_journey);
+            }
             $this->db->where('type_option.id_cabang', $id);
             $query = $this->db->get('type_option');
             
         
             return $query->result();
         }
+        
         public function item_journey_null($journey)
         {
             $this->db->select('type_option.*'); // Select columns from type_option
@@ -447,6 +660,122 @@ class Model_beranda extends CI_Model
                 return array();
             }
         }
+
+        public function item_journey_nama($id, $journey)
+        {
+            $this->db->select('type_option.*'); // Select columns from type_option
+            $this->db->from('type_option');
+            $this->db->join('journey', 'journey.id_journey = type_option.id_journey');
+            
+            // Decode the URL-encoded $journey parameter to restore spaces
+            $decoded_journey = urldecode($journey);
+            
+            $this->db->where('journey.journey', $decoded_journey);
+            $this->db->where('type_option.id_cabang', $id);
+          
+            $query = $this->db->get();
+            
+            if ($query) {
+                return $query->result();
+            } else {
+                // Handle the error, you can return an empty array or handle it as needed
+                return array();
+            }
+        }
+        public function item_journey_id_cabang($id, $journey)
+        {
+            $this->db->select('type_option.*'); // Select columns from type_option
+            $this->db->from('type_option');
+            $this->db->join('journey', 'journey.id_journey = type_option.id_journey');
+            
+            // Decode the URL-encoded $journey parameter to restore spaces
+            $decoded_journey = urldecode($journey);
+            
+            $this->db->where('journey.journey', $decoded_journey);
+            $this->db->where('type_option.id_cabang', $id);
+          
+            $query = $this->db->get();
+            
+            if ($query) {
+                return $query->row();
+            } else {
+                // Handle the error, you can return an empty array or handle it as needed
+                return array();
+            }
+        }
+        public function item_journey_id($journey)
+        {
+            $this->db->select('type_option.*'); // Select columns from type_option
+            $this->db->from('type_option');
+            $this->db->join('journey', 'journey.id_journey = type_option.id_journey');
+            
+            // Decode the URL-encoded $journey parameter to restore spaces
+            $decoded_journey = urldecode($journey);
+            
+            $this->db->where('journey.journey', $decoded_journey);
+          
+            $query = $this->db->get();
+            
+            if ($query) {
+                return $query->row();
+            } else {
+                // Handle the error, you can return an empty array or handle it as needed
+                return array();
+            }
+        }
+        public function item_journey_nama_no_cabang($journey)
+        {
+            $this->db->select('type_option.*'); // Select columns from type_option
+            $this->db->from('type_option');
+            $this->db->join('journey', 'journey.id_journey = type_option.id_journey');
+            
+            // Decode the URL-encoded $journey parameter to restore spaces
+            $decoded_journey = urldecode($journey);
+            
+            $this->db->where('journey.journey', $decoded_journey);
+          
+            $query = $this->db->get();
+            
+            if ($query) {
+                return $query->result();
+            } else {
+                // Handle the error, you can return an empty array or handle it as needed
+                return array();
+            }
+        }
+        public function item_journey_pelabuhan($id, $id_pelabuhan)
+        {
+            $this->db->select('type_option.*'); // Select columns from type_option
+            $this->db->from('type_option');
+            $this->db->where('type_option.id_pelabuhan', $id_pelabuhan);
+            $this->db->where('type_option.id_cabang', $id);
+          
+            $query = $this->db->get();
+            
+            if ($query) {
+                return $query->result();
+            } else {
+                // Handle the error, you can return an empty array or handle it as needed
+                return array();
+            }
+        }
+        public function item_journey_kapal($id, $id_kapal)
+        {
+            $this->db->select('type_option.*'); // Select columns from type_option
+            $this->db->from('type_option');
+            $this->db->where('type_option.id_kapal', $id_kapal);
+            $this->db->where('type_option.id_cabang', $id);
+          
+            $query = $this->db->get();
+            
+            if ($query) {
+                return $query->result();
+            } else {
+                // Handle the error, you can return an empty array or handle it as needed
+                return array();
+            }
+        }
+        
 
 
 
@@ -533,7 +862,7 @@ class Model_beranda extends CI_Model
 
         public function getJourneyData_pej($id, $type_journey, $today, $end_value)
         {
-            $this->db->select_sum('laporan.poin_pejalan_kaki');
+            $this->db->select_sum('laporan.poin_pejalan_kaki'); 
             $this->db->join('journey', 'journey.id_journey = laporan.id_journey');
             // $this->db->join('cabang', 'cabang.id_cabang = laporan.id_cabang');
              $this->db->where('laporan.id_cabang', $id);

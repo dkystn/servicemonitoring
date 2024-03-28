@@ -68,7 +68,7 @@
             </div>
         </div>
     </li>
-    <hr class="sidebar-divider">
+    <!-- <hr class="sidebar-divider">
     <li class="nav-item">
         <a class="nav-link" href="<?= base_url('admin/tambah_laporan'); ?>">
             <i class="fas fa-fw fa-file"></i>
@@ -87,7 +87,7 @@
             <i class="fas fa-fw fa-chart-area"></i>
             <span>Laporan Masalah</span>
         </a>
-    </li>
+    </li> -->
     <hr class="sidebar-divider">
     <li class="nav-item">
         <a class="nav-link" href="<?= base_url('admin/asset'); ?>">

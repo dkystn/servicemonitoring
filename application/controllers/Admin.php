@@ -74,16 +74,15 @@ class Admin extends CI_Controller {
 
         $query = $this->db->get();
         $result = $query->row();
-
+ 
         return ($result !== null) ? $result->poin : 0;
     }
-    public function index($cabang_id = null, $today = null, $dateEnd = null)
+    public function index($cabang_id = null, $today = null)
 	{
 		// Dapatkan nilai cabang dari pengguna yang sedang login
         
         $id_user = $this->session->userdata('id_user');
-        $user = $this->Model_akun->getCabangByID($id_user);
-        $cabang = $user;
+        // $user = $this->Model_akun->getCabangByID($id_user);
 
         // Mendapatkan tanggal hari ini
         if ($today === null) {
@@ -111,22 +110,85 @@ class Admin extends CI_Controller {
         //cabang id
         $id = $cabang_id;
         if ($id === "") {
-            $id =null;
+            $id = null;
         }
         $data['id'] = $id;
+
+        // journey id
+        $id_journey = $this->input->get('j');
+        if ($id_journey === "") {
+            $id_journey = null;
+        }
+
+        // kapal id
+        $id_kapal = $this->input->get('k');
+        if ($id_kapal === "") {
+            $id_kapal = null;
+        }
+        $data['id_kapal'] = $id_kapal;
+        $querykapal = $this->db->get_where('kapal', array('id_kapal' => $id_kapal, 'id_cabang' => $id));
+        $rowkapal = $querykapal->row_array();
+
+        if ($rowkapal) {
+            // Print the ship name
+            $data['nama_kapal'] = $rowkapal['kapal'];
+        } else {
+            $data['nama_kapal'] = null;
+        }
+        // pelabuahan id
+        $id_pelabuhan = $this->input->get('p');
+        if ($id_pelabuhan === "") {
+            $id_pelabuhan =null;
+        }
+        $data['id_pelabuhan'] = $id_pelabuhan;
+        $querypelabuhan = $this->db->get_where('pelabuhan', array('id_pelabuhan' => $id_pelabuhan, 'id_cabang' => $id));
+        $rowpelabuhan = $querypelabuhan->row_array();
+
+        if ($rowpelabuhan) {
+            // Print the ship name
+            $data['nama_pelabuhan'] = $rowpelabuhan['pelabuhan'];
+        } else {
+            $data['nama_pelabuhan'] = null;
+        }
+        //  Journey
+        $journey = $this->input->get('j');
+        if ($journey === "") {
+            $journey =null;
+        }
+        // $data['journey'] = $journey;
+        $queryjourney = $this->db->get_where('journey', array('id_journey' => $journey));
+        $rowjourney = $queryjourney->row_array();
+
+        if ($rowjourney) {
+            // Print the ship name
+            $data['nama_journey'] = $rowjourney['journey'];
+            $namaJourney = $rowjourney['journey'];
+            
+        } else {
+            $data['nama_journey'] = null;
+            $namaJourney = null;
+        }
+        // var_dump("id" . $journey ."nama:". $namaJourney . "Id Cabang" . $id);
+        //     die();
     
-        
+        // end date
         $end_value = $this->input->get('end');
         if ($end_value === "") {
-            $end_value =null;
+            $end_value = null;
         }
         //nilai cabang
         if ($id === null) {
-            $pre_poin = $this->Model_beranda->count_pre_all($today);
-            $port_poin = $this->Model_beranda->count_port_all($today);
-            $on_poin = $this->Model_beranda->count_on_all($today);
-            $post_poin = $this->Model_beranda->count_post_all($today);
-            $all_poin = $this->Model_beranda->count_all_admin($today);
+            $pre_poin = $this->Model_beranda->count('Pre Journey', $id, $today, $end_value, $id_pelabuhan, $id_kapal, $id_journey);
+            $port_poin = $this->Model_beranda->count('Port Journey', $id, $today, $end_value, $id_pelabuhan, $id_kapal, $id_journey);
+            $on_poin = $this->Model_beranda->count('On Board Journey', $id, $today, $end_value, $id_pelabuhan, $id_kapal, $id_journey);
+            $post_poin = $this->Model_beranda->count('Post Journey', $id, $today, $end_value, $id_pelabuhan, $id_kapal, $id_journey);
+            $all_poin = $this->Model_beranda->count_all($id, $today, $end_value, $id_pelabuhan, $id_kapal, $id_journey);
+            
+            // $pre_poin = $this->Model_beranda->count_pre_all($today);
+            // $port_poin = $this->Model_beranda->count_port_all($today);
+            // $on_poin = $this->Model_beranda->count_on_all($today);
+            // $post_poin = $this->Model_beranda->count_post_all($today);
+            // $all_poin = $this->Model_beranda->count_all_admin($today);
 
             $data['pre_poin'] = $pre_poin;
             $data['port_poin'] = $port_poin;
@@ -185,8 +247,12 @@ class Admin extends CI_Controller {
             
             $data['nama'] = $this->Model_akun->getUsernameById($id_user);
             $data['level'] = $this->Model_akun->getLVById($id_user);
-
-            $data['journey'] = $this->Model_beranda->item_admin(); 
+            if($namaJourney != null)
+            {
+                $data['journey'] = $this->Model_beranda->item_journey_nama_no_cabang($namaJourney); 
+            } else{
+                $data['journey'] = $this->Model_beranda->item_admin(); 
+            }
             
             $data['pre_next'] = $this->Model_beranda->item_admin_next('Pre Journey'); 
             $data['port_next'] = $this->Model_beranda->item_admin_next('Port Journey'); 
@@ -294,12 +360,12 @@ class Admin extends CI_Controller {
             //$id === ada nilainya
             $data['id_cabang'] = $this->Model_akun->getCabangByID_admin($id);
              // hitung point
-            $pre_poin = $this->Model_beranda->count_pre($id, $today, $end_value);
-            $port_poin = $this->Model_beranda->count_port($id, $today, $end_value);
-            $on_poin = $this->Model_beranda->count_on($id, $today, $end_value);
-            $post_poin = $this->Model_beranda->count_post($id, $today, $end_value);
-            $all_poin = $this->Model_beranda->count_all($id, $today, $end_value);
-
+            $pre_poin = $this->Model_beranda->count('Pre Journey', $id, $today, $end_value, $id_pelabuhan, $id_kapal, $id_journey);
+            $port_poin = $this->Model_beranda->count('Port Journey', $id, $today, $end_value, $id_pelabuhan, $id_kapal, $id_journey);
+            $on_poin = $this->Model_beranda->count('On Board Journey', $id, $today, $end_value, $id_pelabuhan, $id_kapal, $id_journey);
+            $post_poin = $this->Model_beranda->count('Post Journey', $id, $today, $end_value, $id_pelabuhan, $id_kapal, $id_journey);
+            $all_poin = $this->Model_beranda->count_all($id, $today, $end_value, $id_pelabuhan, $id_kapal, $id_journey);
+            
             $data['pre_poin'] = $pre_poin;
             $data['port_poin'] = $port_poin;
             $data['on_poin'] = $on_poin;
@@ -332,6 +398,11 @@ class Admin extends CI_Controller {
             $data['all_done'] = $all_done;
 
 
+            // pilihan kapal
+            $data['kapal'] = $this->Model_laporan->kapal_cabang($id);
+            // pilihan pelabuhan
+            $data['pelabuhan'] = $this->Model_laporan->pelabuhan_cabang($id);
+
             // dounat
             $data['item_kendaraan'] = $this->Model_beranda->countKendaraanRows($id);
             $data['done_kendaraan'] = $this->Model_beranda->countKendaraanOccurrences($id, $today);
@@ -357,7 +428,16 @@ class Admin extends CI_Controller {
 
             $data['nama'] = $this->Model_akun->getUsernameById($id_user);
             $data['level'] = $this->Model_akun->getLVById($id_user);
-            $data['journey'] = $this->Model_beranda->item($id); 
+            if($namaJourney != null)
+            {
+                $data['journey'] = $this->Model_beranda->item_journey_nama($id, $namaJourney); 
+            } elseif($id_pelabuhan != null) {
+                $data['journey'] = $this->Model_beranda->item_journey_pelabuhan($id, $id_pelabuhan); 
+            }elseif($id_kapal != null) {
+                $data['journey'] = $this->Model_beranda->item_journey_kapal($id, $id_kapal); 
+            } else {
+                $data['journey'] = $this->Model_beranda->item($id); 
+            }
 
 
             // label bar chart
@@ -573,15 +653,21 @@ class Admin extends CI_Controller {
         
 
         // result di web
-		$data['pre_point_admin'] = ($pre_item != 0) ?  round($pre_poin / $pre_item) : 0;
-		$data['port_point_admin'] = ($port_item != 0) ?  round($port_poin / $port_item) : 0;
-		$data['on_point_admin'] = ($on_item != 0) ?  round($on_poin / $on_item) : 0;
-		$data['post_point_admin'] = ($post_item != 0) ?  round($post_poin / $post_item) : 0;
+		// $data['pre_point_admin'] = ($pre_item != 0) ?  round($pre_poin / $pre_item) : 0;
+		// $data['port_point_admin'] = ($port_item != 0) ?  round($port_poin / $port_item) : 0;
+		// $data['on_point_admin'] = ($on_item != 0) ?  round($on_poin / $on_item) : 0;
+		// $data['post_point_admin'] = ($post_item != 0) ?  round($post_poin / $post_item) : 0;
+		// $data['all_point_admin'] = ($all_item != 0) ?  round($all_poin / $all_item) : 0;
+
+        $data['pre_point_admin'] = $pre_poin ;
+		$data['port_point_admin'] = $port_poin ;
+		$data['on_point_admin'] = $on_poin;
+		$data['post_point_admin'] = $post_poin ;
 		$data['all_point_admin'] = ($all_item != 0) ?  round($all_poin / $all_item) : 0;
         
         
 	
-		// Menyiapkan data untuk chart
+		// Menyiapkan data untuk chart  
 		if ($kendaraanData + $pejalanKakiData !== 0) {
             $kendaraanPercentage = ($kendaraanData / ($kendaraanData + $pejalanKakiData)) * 100;
             $pejalanKakiPercentage = ($pejalanKakiData / ($kendaraanData + $pejalanKakiData)) * 100;
@@ -609,7 +695,6 @@ class Admin extends CI_Controller {
         $this->load->view('admin/layout/topbar', $data);
         $this->load->view('dashboard/ambon/admin', $data);
         $this->load->view('admin/layout/footer');
-
 		
 	}
     public function index_ori($cabang_id = null, $today = null, $dateEnd = null)
@@ -1451,25 +1536,35 @@ class Admin extends CI_Controller {
 	}
     public function index_item($journey = null,  $today = null, $cabang_id = null)
 	{
-		// Dapatkan nilai cabang dari pengguna yang sedang login
         
-        $id_user = $this->session->userdata('id_user');
-        $user = $this->Model_akun->getCabangByID($id_user);
-        $cabang = $user;
+		$data['title'] = 'Dasboard'; 
+        // params
 
         // Mendapatkan tanggal hari ini
         if ($today === null) {
             // Mendapatkan tanggal hari ini jika parameter $today tidak ada
             $today = date('Y-m-d');
         }
-        $data['today'] = $today;
-		$data['title'] = 'Dasboard'; 
+        $start_value = $this->input->get('start');
+        if ($start_value !== null) {
+            // Mendapatkan tanggal hari ini jika parameter $today tidak ada
+            $today = $start_value ;
+        }
 
         //cabang id
+        $cabang_id = $this->input->get('c');
         $id = $cabang_id;
         if ($id === "") {
             $id =null;
         }
+        $data['id'] = $id;
+        
+        // end
+        $end_value = $this->input->get('end');
+        if ($end_value === "") {
+            $end_value =null;
+        }
+
         $data['id'] = $id;
         $data['today'] = $today;
         $data['nama_journey'] = $journey;
@@ -3569,21 +3664,26 @@ class Admin extends CI_Controller {
     
             $filename = 'screenshot_' . date('YmdHis') . '.png';
             $filepath = FCPATH . 'uploads_ss/' . $filename;
+            $asdp = FCPATH . 'logo/s.png';
+            $bumn = FCPATH . 'logo/logo_2.png';
             write_file($filepath, $image_data);
             
             // Generate PDF
-            $pdf = new Dompdf\Dompdf();
-            
+            $pdf = new Dompdf\Dompdf(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true]);
+            $dir = __DIR__;
             $imageDataUri = 'data:image/png;base64,' . base64_encode(file_get_contents($filepath));
+            $imagelogo1 = 'data:image/png;base64,' . base64_encode(file_get_contents($asdp));
+            $imagelogo2 = 'data:image/png;base64,' . base64_encode(file_get_contents($bumn));
             
             $html = '<html><body>';
             
             // Header
             $html .= '<div style="display: flex; justify-content: space-between;">';
-            // $html .= '<div><img src="' . base_url('assets/img/logo/logo_2.png') . '" style="max-width: 100px;"></div>';
-            $html .= '<div style="text-align: center; flex-grow: 1;">Report Service Touch Point Cabang Ambon PT ASDP Indonesia Ferry (Persero)</div>';
-            // $html .= '<div><img src="' . base_url('assets/img/logo/2.png') . '" style="max-width: 100px;"></div>';
+            $html .= '<div style="flex: 1;"><img src="'. $imagelogo2  .'" style="max-width: 80px; margin-bottom: - 40px;"></div>';
+            $html .= '<div style="text-align: center; flex: 1 ; margin-top: -25px;">Report Service Touch Point Cabang Ambon PT ASDP Indonesia Ferry (Persero)</div>';
+            $html .= '<div style="flex: 1; text-align: right;"><img src="'. $imagelogo1  .'" style="max-width: 80px; margin-top: -40px;"></div>';
             $html .= '</div>';
+            
             
             // Divider
             $html .= '<hr style="border: none; border-top: 1px solid black;">';

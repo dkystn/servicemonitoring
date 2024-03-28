@@ -5,7 +5,7 @@
     </div>
     <h3>Selamat Datang !</h3>
     <span>Selamat anda berasil login sebagai Admin </span>
-
+ 
     <div class="row mb-3 mt-3">
         <div class="col-md-6">
             <img src="<?= base_url('assets/'); ?>img/boy.png" width:100px;>
